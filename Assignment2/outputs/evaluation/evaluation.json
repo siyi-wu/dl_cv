@@ -1,0 +1,156 @@
+{
+  "checkpoint": "E:\\Github_Project\\dl_cv\\Assignment2\\outputs\\train_full\\checkpoint_last.pt",
+  "checkpoint_training_steps": 9380,
+  "weights": "ema_model",
+  "sampler": "ancestral",
+  "eta": 0.0,
+  "num_samples": 1000,
+  "seed": 123,
+  "device": "cuda",
+  "confidence_threshold": 0.8,
+  "evaluator": {
+    "name": "MNISTClassifier",
+    "feature_dim": 128,
+    "test_accuracy": 0.9886000156402588,
+    "training_history": [
+      {
+        "epoch": 1,
+        "loss": 0.26809245710174245,
+        "train_accuracy": 0.9187833333333333
+      },
+      {
+        "epoch": 2,
+        "loss": 0.055119662472605704,
+        "train_accuracy": 0.9831333333333333
+      },
+      {
+        "epoch": 3,
+        "loss": 0.03834732085665067,
+        "train_accuracy": 0.9878
+      }
+    ],
+    "reference_samples": 1000,
+    "real_class_distribution": [
+      0.10100000351667404,
+      0.11100000143051147,
+      0.10499999672174454,
+      0.10199999809265137,
+      0.09700000286102295,
+      0.08799999952316284,
+      0.10300000011920929,
+      0.10100000351667404,
+      0.10700000077486038,
+      0.08500000089406967
+    ]
+  },
+  "results": [
+    {
+      "steps": 1000,
+      "elapsed_seconds": 74.34407279999868,
+      "samples_per_second": 13.450971440456483,
+      "mnist_feature_fid": 20.98478126235522,
+      "mean_confidence": 0.9369556307792664,
+      "median_confidence": 0.998616099357605,
+      "low_confidence_ratio": 0.12600000202655792,
+      "class_coverage": 10,
+      "normalized_class_entropy": 0.9953436255455017,
+      "class_counts": [
+        90,
+        124,
+        102,
+        109,
+        91,
+        102,
+        96,
+        111,
+        68,
+        107
+      ],
+      "class_proportions": [
+        0.09000000357627869,
+        0.12399999797344208,
+        0.10199999809265137,
+        0.10899999737739563,
+        0.09099999815225601,
+        0.10199999809265137,
+        0.09600000083446503,
+        0.11100000143051147,
+        0.06800000369548798,
+        0.10700000077486038
+      ],
+      "class_distribution_tvd": 0.06599999591708183
+    },
+    {
+      "steps": 200,
+      "elapsed_seconds": 15.011054199996579,
+      "samples_per_second": 66.61757306826777,
+      "mnist_feature_fid": 22.730205842943626,
+      "mean_confidence": 0.9405557513237,
+      "median_confidence": 0.9989126920700073,
+      "low_confidence_ratio": 0.11500000208616257,
+      "class_coverage": 10,
+      "normalized_class_entropy": 0.9961168766021729,
+      "class_counts": [
+        95,
+        102,
+        123,
+        105,
+        101,
+        90,
+        102,
+        114,
+        71,
+        97
+      ],
+      "class_proportions": [
+        0.0949999988079071,
+        0.10199999809265137,
+        0.12300000339746475,
+        0.10499999672174454,
+        0.10100000351667404,
+        0.09000000357627869,
+        0.10199999809265137,
+        0.11400000005960464,
+        0.07100000232458115,
+        0.09700000286102295
+      ],
+      "class_distribution_tvd": 0.0520000085234642
+    },
+    {
+      "steps": 50,
+      "elapsed_seconds": 3.759072399996512,
+      "samples_per_second": 266.02307526743243,
+      "mnist_feature_fid": 22.751183089832693,
+      "mean_confidence": 0.9322097897529602,
+      "median_confidence": 0.9984999895095825,
+      "low_confidence_ratio": 0.14000000059604645,
+      "class_coverage": 10,
+      "normalized_class_entropy": 0.9932225346565247,
+      "class_counts": [
+        98,
+        105,
+        113,
+        121,
+        71,
+        113,
+        89,
+        111,
+        69,
+        110
+      ],
+      "class_proportions": [
+        0.09799999743700027,
+        0.10499999672174454,
+        0.11299999803304672,
+        0.12099999934434891,
+        0.07100000232458115,
+        0.11299999803304672,
+        0.08900000154972076,
+        0.11100000143051147,
+        0.0689999982714653,
+        0.10999999940395355
+      ],
+      "class_distribution_tvd": 0.08700000494718552
+    }
+  ]
+}

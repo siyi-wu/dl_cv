@@ -20,9 +20,10 @@ python -c "import torch; print(torch.__version__, torch.cuda.is_available(), tor
 python -m unittest discover -s tests -v
 python train.py --data-dir data --output-dir outputs/train_full --epochs 20 --batch-size 128 --device cuda --num-workers 4
 python compare_steps.py --checkpoint outputs/train_full/checkpoint_last.pt --output-dir outputs/comparison --steps 1000 200 50 --num-samples 64 --device cuda
+python evaluate.py --checkpoint outputs/train_full/checkpoint_last.pt --output-dir outputs/evaluation --steps 1000 200 50 --num-samples 1000 --device cuda
 ```
 
-训练结束后，双击 `start_demo.bat` 查看损失曲线、样本网格和步数对比。首次训练会自动下载 MNIST；W&B 是可选功能，以上命令无需登录即可运行。若没有 NVIDIA GPU，将训练命令和对比命令中的 `--device cuda` 改为 `--device cpu`，但运行时间会明显增加。
+训练结束后，双击 `start_demo.bat` 查看损失曲线、样本网格、步数对比和定量评估。首次训练会自动下载 MNIST；W&B 是可选功能，以上命令无需登录即可运行。若没有 NVIDIA GPU，将训练、对比和评估命令中的 `--device cuda` 改为 `--device cpu`，但运行时间会明显增加。
 
 ## 1. 工程结构
 
@@ -37,8 +38,8 @@ Assignment2/
 ├── train.py             # 训练入口，保存原始权重和 EMA 权重
 ├── sample.py            # 单次生成入口
 ├── compare_steps.py     # 1000/200/50 步质量代理指标与耗时对比
-├── scripts/md_to_pdf.py # 将实验报告 Markdown 转为 PDF
-├── report/              # 实验报告 Markdown 与 PDF
+├── evaluate.py          # 分类置信度、类别覆盖和 MNIST 特征 FID 评估
+├── report/              # Markdown 实验报告
 ├── demo/index.html      # 离线交互实验展示页
 ├── start_demo.bat       # Windows 一键打开离线展示页
 ├── outputs/             # 已保留的训练曲线、样本网格和对比数据
@@ -182,15 +183,31 @@ DDIM 50 步独立运行耗时 0.598 秒；部分数字清晰，但断笔、重�
 
 ![DDIM 50 步样本网格](outputs/samples/ddim_50.png)
 
-## 8. 实验报告
+### 分类器辅助的生成质量评估
 
-报告源文件位于 `report/experiment_report.md`。可重建 PDF：
+训练一个独立的 MNIST CNN 评估器，并对 1000/200/50 步各生成 1000 张图片：
 
 ```powershell
-python scripts/md_to_pdf.py --input report/experiment_report.md --output report/experiment_report.pdf
+python evaluate.py --checkpoint outputs/train_full/checkpoint_last.pt --output-dir outputs/evaluation --steps 1000 200 50 --num-samples 1000 --device cuda
 ```
 
-转换脚本使用 ReportLab，并自动搜索常见 Windows/Linux 中文字体。当前报告已引用 `outputs/` 中的真实损失曲线与采样图，并完成 PDF 逐页渲染检查。
+评估器先报告 MNIST 测试集准确率，再计算平均分类置信度、低置信度比例、0-9 类别覆盖、归一化类别熵、生成类别分布与真实测试集的总变差距离，以及基于评估器 128 维特征的 MNIST FID。这里的 MNIST FID 越低越好，只适合本项目内部横向比较，不能与使用 ImageNet Inception 网络得到的标准 FID 直接比较。评估结果写入 `outputs/evaluation/evaluation.json`、`evaluation.csv` 和 `class_distribution.png`；评估器 checkpoint 会被 Git 忽略。
+
+本次评估器在完整 10,000 张 MNIST 测试图像上的准确率为 **98.86%**。每种配置生成 1,000 张图像，实测如下：
+
+| Ancestral 步数 | 吞吐量/张·s⁻¹ | MNIST 特征 FID↓ | 平均置信度↑ | 低置信比例↓ | 类别覆盖↑ | 类别熵↑ | 分布 TVD↓ |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1000 | 13.45 | **20.98** | 93.70% | 12.6% | 10/10 | 0.9953 | 0.066 |
+| 200 | 66.62 | 22.73 | **94.06%** | **11.5%** | 10/10 | **0.9961** | **0.052** |
+| 50 | **266.02** | 22.75 | 93.22% | 14.0% | 10/10 | 0.9932 | 0.087 |
+
+1000 步获得最低特征 FID；200 步约有 4.95 倍吞吐量，同时得到最高平均置信度和最均衡的类别分布，是更实用的质量—速度折中；50 步约有 19.78 倍吞吐量，但低置信样本和类别偏移增加。FID 的定义参考 Heusel 等人的 [Fréchet Inception Distance](https://proceedings.neurips.cc/paper_files/paper/2017/hash/8a1d694707eb0fefe65871369074926d-Abstract.html)，本项目将其特征提取器替换为独立训练的 MNIST 分类器，以适配灰度数字域。
+
+![分类器预测的真实与生成类别分布](outputs/evaluation/class_distribution.png)
+
+## 8. 实验报告
+
+报告位于 `report/experiment_report.md`，引用 `outputs/` 中的真实损失曲线、采样网格和定量评估图。报告以 Markdown 作为最终交付格式，不需要额外转换工具。
 
 ## 9. 复现约定
 
@@ -210,7 +227,8 @@ Assignment2/
 └── outputs/
     ├── train_full/
     ├── samples/
-    └── comparison/
+    ├── comparison/
+    └── evaluation/
 ```
 
 也可以直接双击 `demo/index.html`。页面不依赖服务器或 CDN，包含原生数学公式、完整 MiniUNet 架构、章节导航、训练轮次滑块、1000/200/50 步切换、耗时图、DDPM/DDIM 对照和图片放大。
@@ -228,7 +246,7 @@ python -m http.server 8000
 - checkpoint 保存完整模型/扩散配置，采样脚本优先使用 EMA 权重；
 - 对比实验固定初始噪声与种子，避免样本差异干扰步数比较；
 - `git` 忽略下载数据、checkpoint、W&B 本地缓存和临时文件；保留 `outputs/` 下的 PNG、JSON、CSV、JSONL 结果以及报告，便于换电脑直接展示。
-- 另一台电脑只做展示时无需 checkpoint：克隆仓库后可直接打开 README、`outputs/` 图片和 `report/experiment_report.pdf`。如需重新采样或继续训练，需另行复制被忽略的 checkpoint。
+- 另一台电脑只做展示时无需 checkpoint：克隆仓库后可直接打开 README、`outputs/` 图片、`report/experiment_report.md` 和离线 HTML。若需重新采样或继续训练，需另行复制被忽略的 checkpoint。
 
 ## 10. 本次完整实验结果
 
@@ -236,8 +254,9 @@ python -m http.server 8000
 - 模型：1,155,265 参数，满足不超过 5M 的限制；
 - 训练：MNIST 60,000 张、20 epochs、9,380 个优化步，总计 361.85 秒；
 - 损失：epoch 平均 MSE 从 0.11124 降至 0.03945，最终 batch MSE 为 0.03696；
-- 输出：训练损失曲线、20 轮预览、DDPM/DDIM 8×8 网格、1000/200/50 对比图及 JSON/CSV 均已生成；
-- 验证：4 项核心单元测试全部通过，W&B run ID 为 `70zndm3y`。
+- 输出：训练损失曲线、20 轮预览、DDPM/DDIM 8×8 网格、步数对比、类别分布图及 JSON/CSV 均已生成；
+- 定量评估：分类器测试准确率 98.86%；三组均覆盖 10 类；1000 步 MNIST 特征 FID 为 20.98，200 步平均置信度为 94.06%；
+- 验证：6 项核心单元测试全部通过，W&B run ID 为 `70zndm3y`。
 
 ![完整训练损失曲线](outputs/train_full/loss_curve.png)
 

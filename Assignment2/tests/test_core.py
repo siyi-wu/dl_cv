@@ -13,6 +13,7 @@ import torch
 from torch import nn
 
 from miniddpm.diffusion import GaussianDiffusion, cosine_beta_schedule, linear_beta_schedule
+from miniddpm.evaluation import MNISTClassifier, classification_statistics, frechet_feature_distance
 from miniddpm.model import MiniUNet
 
 
@@ -66,6 +67,23 @@ class ModelTests(unittest.TestCase):
         outputs = model(inputs, torch.tensor([0, 999]))
         self.assertEqual(tuple(outputs.shape), tuple(inputs.shape))
         self.assertLessEqual(model.parameter_count, 5_000_000)
+
+
+class EvaluationTests(unittest.TestCase):
+    def test_classifier_shapes_and_coverage_statistics(self):
+        classifier = MNISTClassifier(feature_dim=32)
+        images = torch.randn(4, 1, 28, 28)
+        features = classifier.forward_features(images)
+        logits = classifier(images)
+        self.assertEqual(tuple(features.shape), (4, 32))
+        self.assertEqual(tuple(logits.shape), (4, 10))
+        statistics = classification_statistics(torch.eye(10) * 10)
+        self.assertEqual(statistics["class_coverage"], 10)
+        self.assertAlmostEqual(statistics["normalized_class_entropy"], 1.0, places=5)
+
+    def test_frechet_distance_is_zero_for_identical_features(self):
+        features = torch.randn(64, 16)
+        self.assertAlmostEqual(frechet_feature_distance(features, features), 0.0, places=7)
 
 
 if __name__ == "__main__":
