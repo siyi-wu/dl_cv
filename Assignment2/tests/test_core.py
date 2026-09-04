@@ -14,7 +14,7 @@ from torch import nn
 
 from miniddpm.diffusion import GaussianDiffusion, cosine_beta_schedule, linear_beta_schedule
 from miniddpm.evaluation import MNISTClassifier, classification_statistics, frechet_feature_distance
-from miniddpm.model import MiniUNet
+from miniddpm.model import EnhancedUNet, MiniUNet, build_model
 
 
 class ZeroNoiseModel(nn.Module):
@@ -67,6 +67,15 @@ class ModelTests(unittest.TestCase):
         outputs = model(inputs, torch.tensor([0, 999]))
         self.assertEqual(tuple(outputs.shape), tuple(inputs.shape))
         self.assertLessEqual(model.parameter_count, 5_000_000)
+
+    def test_enhanced_shape_budget_and_factory(self):
+        model = EnhancedUNet()
+        inputs = torch.randn(2, 1, 28, 28)
+        outputs = model(inputs, torch.tensor([0, 999]))
+        self.assertEqual(tuple(outputs.shape), tuple(inputs.shape))
+        self.assertGreater(model.parameter_count, MiniUNet().parameter_count)
+        self.assertLessEqual(model.parameter_count, 5_000_000)
+        self.assertIsInstance(build_model("enhanced"), EnhancedUNet)
 
 
 class EvaluationTests(unittest.TestCase):

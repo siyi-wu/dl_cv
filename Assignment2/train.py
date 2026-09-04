@@ -23,7 +23,7 @@ from tqdm import tqdm
 
 from miniddpm.data import MNISTDataset
 from miniddpm.diffusion import GaussianDiffusion
-from miniddpm.model import MiniUNet
+from miniddpm.model import build_model
 from miniddpm.utils import atomic_json_dump, resolve_device, save_image_grid, seed_everything
 
 
@@ -36,8 +36,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--learning-rate", type=float, default=2e-4)
     parser.add_argument("--timesteps", type=int, default=1000)
     parser.add_argument("--schedule", choices=("linear", "cosine"), default="cosine")
-    parser.add_argument("--base-channels", type=int, default=32)
-    parser.add_argument("--time-dim", type=int, default=128)
+    parser.add_argument("--model", choices=("mini", "enhanced"), default="mini")
+    parser.add_argument("--base-channels", type=int, default=None)
+    parser.add_argument("--time-dim", type=int, default=None)
     parser.add_argument("--ema-decay", type=float, default=0.999)
     parser.add_argument("--grad-clip", type=float, default=1.0)
     parser.add_argument("--num-workers", type=int, default=0)
@@ -96,6 +97,7 @@ def checkpoint_payload(
         "ema_model": ema_model.state_dict(),
         "optimizer": optimizer.state_dict(),
         "scaler": scaler.state_dict(),
+        "model_name": args.model,
         "model_config": {"in_channels": 1, "base_channels": args.base_channels, "time_dim": args.time_dim},
         "diffusion_config": {"timesteps": args.timesteps, "schedule": args.schedule},
         "train_args": {key: str(value) if isinstance(value, Path) else value for key, value in vars(args).items()},
@@ -111,6 +113,10 @@ def main() -> None:
     args = parse_args()
     if args.epochs < 1 or args.batch_size < 1 or args.wandb_log_every < 1:
         raise ValueError("epochs, batch-size and wandb-log-every must be positive")
+    if args.base_channels is None:
+        args.base_channels = 48 if args.model == "enhanced" else 32
+    if args.time_dim is None:
+        args.time_dim = 192 if args.model == "enhanced" else 128
     seed_everything(args.seed)
     device = resolve_device(args.device)
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -135,7 +141,9 @@ def main() -> None:
         persistent_workers=args.num_workers > 0,
     )
 
-    model = MiniUNet(base_channels=args.base_channels, time_dim=args.time_dim).to(device)
+    model = build_model(
+        args.model, in_channels=1, base_channels=args.base_channels, time_dim=args.time_dim
+    ).to(device)
     if model.parameter_count > 5_000_000:
         raise RuntimeError(f"Model has {model.parameter_count:,} parameters, exceeding the 5M limit")
     ema_model = copy.deepcopy(model).eval().requires_grad_(False)
@@ -150,9 +158,14 @@ def main() -> None:
     resume_state = None
     if args.resume is not None:
         resume_state = torch.load(args.resume, map_location=device, weights_only=False)
+        expected_model_name = args.model
         expected_model_config = {"in_channels": 1, "base_channels": args.base_channels, "time_dim": args.time_dim}
         expected_diffusion_config = {"timesteps": args.timesteps, "schedule": args.schedule}
-        if resume_state["model_config"] != expected_model_config or resume_state["diffusion_config"] != expected_diffusion_config:
+        if (
+            resume_state.get("model_name", "mini") != expected_model_name
+            or resume_state["model_config"] != expected_model_config
+            or resume_state["diffusion_config"] != expected_diffusion_config
+        ):
             raise ValueError("Resume checkpoint model/diffusion settings do not match the command line")
         model.load_state_dict(resume_state["model"])
         ema_model.load_state_dict(resume_state["ema_model"])

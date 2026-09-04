@@ -1,6 +1,6 @@
 # 从零训练迷你扩散模型（MNIST DDPM）
 
-本项目完成第 2 讲课后编程实验：实现 DDPM 前向加噪、小型 U-Net 噪声预测器、DDPM ancestral sampling，并对 1000 / 200 / 50 个反向步的生成效果与耗时进行对比。项目还实现了确定性 DDIM（`eta=0`）作为选做扩展。
+本项目完成第 2 讲课后编程实验：实现 DDPM 前向加噪、小型 U-Net 噪声预测器、DDPM ancestral sampling，并对 1000 / 200 / 50 个反向步的生成效果与耗时进行对比。项目还实现了确定性 DDIM（`eta=0`），以及一个参考扩散模型论文设计、仍低于 5M 参数的 EnhancedUNet，并通过同一评估器完成受控模型对比。
 
 ## 快速运行教程（Windows）
 
@@ -25,6 +25,16 @@ python evaluate.py --checkpoint outputs/train_full/checkpoint_last.pt --output-d
 
 训练结束后，双击 `start_demo.bat` 查看损失曲线、样本网格、步数对比和定量评估。首次训练会自动下载 MNIST；W&B 是可选功能，以上命令无需登录即可运行。若没有 NVIDIA GPU，将训练、对比和评估命令中的 `--device cuda` 改为 `--device cpu`，但运行时间会明显增加。
 
+### 复现论文改进模型对照
+
+```powershell
+python train.py --model enhanced --data-dir data --output-dir outputs/train_enhanced --epochs 20 --batch-size 128 --device cuda --num-workers 4
+python evaluate.py --checkpoint outputs/train_enhanced/checkpoint_last.pt --output-dir outputs/evaluation_enhanced --classifier-checkpoint outputs/evaluation/checkpoint_classifier.pt --steps 1000 200 50 --num-samples 1000 --sample-batch-size 128 --device cuda --num-workers 4
+python compare_models.py --baseline-evaluation outputs/evaluation/evaluation.json --enhanced-evaluation outputs/evaluation_enhanced/evaluation.json --baseline-training outputs/train_full --enhanced-training outputs/train_enhanced --output-dir outputs/model_comparison
+```
+
+第二条命令显式复用基线的分类器 checkpoint，保证两个生成模型采用完全相同的特征空间和判别标准。
+
 ## 1. 工程结构
 
 ```text
@@ -32,15 +42,18 @@ Assignment2/
 ├── src/miniddpm/
 │   ├── data.py          # MNIST 下载与 IDX 解析（不依赖 torchvision）
 │   ├── diffusion.py     # 噪声调度、q(x_t|x_0)、DDPM/DDIM 采样
-│   ├── model.py         # < 5M 参数的迷你 U-Net
+│   ├── model.py         # MiniUNet 与论文改进的 EnhancedUNet
 │   └── utils.py         # 随机种子、设备、图像网格、统计量
 ├── tests/test_core.py   # 核心公式、形状、参数量、采样测试
 ├── train.py             # 训练入口，保存原始权重和 EMA 权重
 ├── sample.py            # 单次生成入口
 ├── compare_steps.py     # 1000/200/50 步质量代理指标与耗时对比
 ├── evaluate.py          # 分类置信度、类别覆盖和 MNIST 特征 FID 评估
+├── compare_models.py    # 基线/增强模型受控对比和汇总图
 ├── report/              # Markdown 实验报告
-├── demo/index.html      # 离线交互实验展示页
+├── demo/
+│   ├── index.html      # 离线交互实验展示页
+│   └── assets/diagrams/ # 两种模型的 draw.io 源图及 SVG/PNG 导出图
 ├── start_demo.bat       # Windows 一键打开离线展示页
 ├── outputs/             # 已保留的训练曲线、样本网格和对比数据
 └── requirements.txt
@@ -48,7 +61,7 @@ Assignment2/
 
 ## 2. 方法依据
 
-实现以 Ho、Jain 与 Abbeel 的 [DDPM 原始论文](https://arxiv.org/abs/2006.11239)为基础，采用噪声预测 MSE 与 U-Net；参考 Nichol 与 Dhariwal 的 [Improved DDPM](https://proceedings.mlr.press/v139/nichol21a.html)加入更适合低分辨率图像的余弦调度；参考 Song、Meng 与 Ermon 的 [DDIM](https://arxiv.org/abs/2010.02502)实现无需重新训练的加速采样。数据规模与 IDX 格式以 [MNIST 官方页面](https://yann.lecun.org/exdb/mnist/index.html)为准。
+实现以 Ho、Jain 与 Abbeel 的 [DDPM 原始论文](https://arxiv.org/abs/2006.11239)为基础，采用噪声预测 MSE 与 U-Net；参考 Nichol 与 Dhariwal 的 [Improved DDPM](https://proceedings.mlr.press/v139/nichol21a.html)加入更适合低分辨率图像的余弦调度；参考 Song、Meng 与 Ermon 的 [DDIM](https://arxiv.org/abs/2010.02502)实现无需重新训练的加速采样。EnhancedUNet 参考 Dhariwal 与 Nichol 的 [Diffusion Models Beat GANs on Image Synthesis](https://proceedings.neurips.cc/paper/2021/hash/49ad23d1ec9fa4bd8d77d02681df5cfa-Abstract.html)及其 [OpenAI 官方实现](https://github.com/openai/improved-diffusion/blob/main/improved_diffusion/unet.py)，采用 AdaGN 时间调制、每分辨率两个残差块、多头/多尺度注意力和零初始化残差输出。数据规模与 IDX 格式以 [MNIST 官方页面](https://yann.lecun.org/exdb/mnist/index.html)为准。
 
 ## 3. Conda 环境与依赖
 
@@ -106,8 +119,9 @@ python train.py --data-dir data --output-dir outputs/smoke --base-channels 16 --
 常用参数：
 
 - `--schedule {linear,cosine}`：噪声调度，默认 `cosine`；
+- `--model {mini,enhanced}`：选择 1.16M 基线或 3.33M 论文改进模型；
 - `--timesteps 1000`：训练扩散步数；
-- `--base-channels 32`：U-Net 基础通道数，启动时强制检查参数量不超过 5M；
+- `--base-channels` / `--time-dim`：不指定时，mini 使用 32/128，enhanced 使用 48/192；启动时强制检查参数量不超过 5M；
 - `--max-train-samples N` / `--max-steps N`：可复现的小规模调试；
 - `--device auto|cpu|cuda`：运行设备；
 - `--seed 42`：Python、NumPy、PyTorch 和 DataLoader 的随机种子。
@@ -205,11 +219,35 @@ python evaluate.py --checkpoint outputs/train_full/checkpoint_last.pt --output-d
 
 ![分类器预测的真实与生成类别分布](outputs/evaluation/class_distribution.png)
 
-## 8. 实验报告
+## 8. 论文改进模型与受控对比
+
+EnhancedUNet 不是简单地增加通道，而是针对时间条件和全局结构进行以下修改：
+
+- **AdaGN 时间调制**：将 192 维时间向量投影为逐通道 scale/shift，使用 \(h'=(1+s_t)\operatorname{GroupNorm}(h)+b_t\) 调制特征；
+- **每个分辨率两个残差块**：在 28×28 和 14×14 编解码阶段增加特征精炼；
+- **多尺度多头注意力**：在 14×14 与 7×7 使用 4 头注意力；
+- **零初始化残差输出**：残差块末端卷积、注意力输出投影和最终输出层从零开始，使网络初始行为接近恒等映射并稳定优化；
+- **容量仍受控**：3,327,553 参数，是 1.16M 基线的 2.88 倍，但低于 5M 上限。
+
+两组都使用 60,000 张训练图像、20 epochs、9,380 个优化步、相同学习率/调度/EMA 和训练 seed。评估复用同一个测试准确率为 98.86% 的分类器，并对每种步数生成 1,000 张图像。
+
+| 步数 | 基线 FID | 增强 FID | FID 降幅 | 基线置信度 | 增强置信度 | 基线低置信 | 增强低置信 |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1000 | 20.98 | **16.11** | **23.23%** | 93.70% | **96.37%** | 12.6% | **6.5%** |
+| 200 | 22.73 | **18.90** | **16.85%** | 94.06% | **96.21%** | 11.5% | **7.8%** |
+| 50 | 22.75 | **15.13** | **33.50%** | 93.22% | **96.29%** | 14.0% | **7.1%** |
+
+![基线与论文改进模型的定量对比](outputs/model_comparison/model_quality_comparison.png)
+
+![50 步基线与增强模型样本网格](outputs/model_comparison/grid_comparison_50.png)
+
+增强版在全部三种步数下均降低 FID、提高置信度并减少低置信样本，说明提升不只体现在训练损失。代价是训练耗时从 361.85 秒增加到 991.92 秒（2.74 倍），1,000 样本批量评估中的采样吞吐降低约 4.2–4.5 倍。50 步增强版在本次 seed 下取得最低 FID 15.13，但这不意味着 50 步普遍优于 1000 步；严格结论仍需多个随机种子和更大样本量验证。
+
+## 9. 实验报告
 
 报告位于 `report/experiment_report.md`，引用 `outputs/` 中的真实损失曲线、采样网格和定量评估图。报告以 Markdown 作为最终交付格式，不需要额外转换工具。
 
-## 9. 复现约定
+## 10. 复现约定
 
 ### 离线展示页
 
@@ -223,15 +261,18 @@ python evaluate.py --checkpoint outputs/train_full/checkpoint_last.pt --output-d
 Assignment2/
 ├── start_demo.bat
 ├── demo/
-│   └── index.html
+│   ├── index.html
+│   └── assets/diagrams/
 └── outputs/
     ├── train_full/
     ├── samples/
     ├── comparison/
-    └── evaluation/
+    ├── evaluation/
+    ├── evaluation_enhanced/
+    └── model_comparison/
 ```
 
-也可以直接双击 `demo/index.html`。页面不依赖服务器或 CDN，包含原生数学公式、完整 MiniUNet 架构、章节导航、训练轮次滑块、1000/200/50 步切换、耗时图、DDPM/DDIM 对照和图片放大。
+也可以直接双击 `demo/index.html`。页面不依赖服务器或 CDN，包含原生数学公式、MiniUNet 与 EnhancedUNet 的完整 draw.io 架构图、章节导航、训练轮次滑块、1000/200/50 步切换、耗时图、DDPM/DDIM 对照和图片放大。架构图下方可下载 `.drawio` 源文件；目标电脑安装 draw.io 后可以继续编辑。
 
 如果希望通过 `localhost` 地址展示，并且目标电脑已经安装 Python，可在项目根目录运行：
 
@@ -248,7 +289,7 @@ python -m http.server 8000
 - `git` 忽略下载数据、checkpoint、W&B 本地缓存和临时文件；保留 `outputs/` 下的 PNG、JSON、CSV、JSONL 结果以及报告，便于换电脑直接展示。
 - 另一台电脑只做展示时无需 checkpoint：克隆仓库后可直接打开 README、`outputs/` 图片、`report/experiment_report.md` 和离线 HTML。若需重新采样或继续训练，需另行复制被忽略的 checkpoint。
 
-## 10. 本次完整实验结果
+## 11. 本次完整实验结果
 
 - 硬件：NVIDIA GeForce RTX 4050 Laptop GPU（6 GB）；
 - 模型：1,155,265 参数，满足不超过 5M 的限制；
@@ -256,7 +297,8 @@ python -m http.server 8000
 - 损失：epoch 平均 MSE 从 0.11124 降至 0.03945，最终 batch MSE 为 0.03696；
 - 输出：训练损失曲线、20 轮预览、DDPM/DDIM 8×8 网格、步数对比、类别分布图及 JSON/CSV 均已生成；
 - 定量评估：分类器测试准确率 98.86%；三组均覆盖 10 类；1000 步 MNIST 特征 FID 为 20.98，200 步平均置信度为 94.06%；
-- 验证：6 项核心单元测试全部通过，W&B run ID 为 `70zndm3y`。
+- 模型改进：EnhancedUNet 为 3,327,553 参数；1000/200/50 步 FID 分别降至 16.11/18.90/15.13，低置信比例分别降至 6.5%/7.8%/7.1%；
+- 验证：7 项核心单元测试全部通过，W&B run ID 为 `70zndm3y`。
 
 ![完整训练损失曲线](outputs/train_full/loss_curve.png)
 

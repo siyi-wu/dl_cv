@@ -1,0 +1,12 @@
+{
+  "device": "cuda",
+  "device_name": "NVIDIA GeForce RTX 4050 Laptop GPU",
+  "dataset_samples": 60000,
+  "parameter_count": 3327553,
+  "epochs_completed": 20,
+  "optimization_steps": 9380,
+  "elapsed_seconds": 991.9228724999994,
+  "final_loss": 0.03688954561948776,
+  "mean_last_10_loss": 0.03765832334756851,
+  "checkpoint": "E:\\Github_Project\\dl_cv\\Assignment2\\outputs\\train_enhanced\\checkpoint_last.pt"
+}

@@ -1,0 +1,156 @@
+{
+  "checkpoint": "E:\\Github_Project\\dl_cv\\Assignment2\\outputs\\train_enhanced\\checkpoint_last.pt",
+  "checkpoint_training_steps": 9380,
+  "weights": "ema_model",
+  "sampler": "ancestral",
+  "eta": 0.0,
+  "num_samples": 1000,
+  "seed": 123,
+  "device": "cuda",
+  "confidence_threshold": 0.8,
+  "evaluator": {
+    "name": "MNISTClassifier",
+    "feature_dim": 128,
+    "test_accuracy": 0.9886000156402588,
+    "training_history": [
+      {
+        "epoch": 1,
+        "loss": 0.26809245710174245,
+        "train_accuracy": 0.9187833333333333
+      },
+      {
+        "epoch": 2,
+        "loss": 0.055119662472605704,
+        "train_accuracy": 0.9831333333333333
+      },
+      {
+        "epoch": 3,
+        "loss": 0.03834732085665067,
+        "train_accuracy": 0.9878
+      }
+    ],
+    "reference_samples": 1000,
+    "real_class_distribution": [
+      0.10100000351667404,
+      0.11100000143051147,
+      0.10499999672174454,
+      0.10199999809265137,
+      0.09700000286102295,
+      0.08799999952316284,
+      0.10300000011920929,
+      0.10100000351667404,
+      0.10700000077486038,
+      0.08500000089406967
+    ]
+  },
+  "results": [
+    {
+      "steps": 1000,
+      "elapsed_seconds": 316.02992509999603,
+      "samples_per_second": 3.164257307859649,
+      "mnist_feature_fid": 16.11094288341956,
+      "mean_confidence": 0.9636893272399902,
+      "median_confidence": 0.9997201561927795,
+      "low_confidence_ratio": 0.06499999761581421,
+      "class_coverage": 10,
+      "normalized_class_entropy": 0.9938501119613647,
+      "class_counts": [
+        108,
+        139,
+        85,
+        115,
+        94,
+        86,
+        104,
+        96,
+        75,
+        98
+      ],
+      "class_proportions": [
+        0.1080000028014183,
+        0.13899999856948853,
+        0.08500000089406967,
+        0.11500000208616257,
+        0.09399999678134918,
+        0.0860000029206276,
+        0.10400000214576721,
+        0.09600000083446503,
+        0.07500000298023224,
+        0.09799999743700027
+      ],
+      "class_distribution_tvd": 0.06199999898672104
+    },
+    {
+      "steps": 200,
+      "elapsed_seconds": 63.46202619999531,
+      "samples_per_second": 15.757454652465444,
+      "mnist_feature_fid": 18.899214748827205,
+      "mean_confidence": 0.9621472358703613,
+      "median_confidence": 0.999714195728302,
+      "low_confidence_ratio": 0.07800000160932541,
+      "class_coverage": 10,
+      "normalized_class_entropy": 0.9973376989364624,
+      "class_counts": [
+        108,
+        120,
+        99,
+        94,
+        92,
+        95,
+        111,
+        108,
+        80,
+        93
+      ],
+      "class_proportions": [
+        0.1080000028014183,
+        0.11999999731779099,
+        0.0989999994635582,
+        0.09399999678134918,
+        0.09200000017881393,
+        0.0949999988079071,
+        0.11100000143051147,
+        0.1080000028014183,
+        0.07999999821186066,
+        0.09300000220537186
+      ],
+      "class_distribution_tvd": 0.04600000008940697
+    },
+    {
+      "steps": 50,
+      "elapsed_seconds": 16.855801400000928,
+      "samples_per_second": 59.3267550008002,
+      "mnist_feature_fid": 15.129076286170653,
+      "mean_confidence": 0.9629161953926086,
+      "median_confidence": 0.9996745586395264,
+      "low_confidence_ratio": 0.07100000232458115,
+      "class_coverage": 10,
+      "normalized_class_entropy": 0.9972964525222778,
+      "class_counts": [
+        109,
+        105,
+        102,
+        112,
+        76,
+        98,
+        95,
+        99,
+        89,
+        115
+      ],
+      "class_proportions": [
+        0.10899999737739563,
+        0.10499999672174454,
+        0.10199999809265137,
+        0.1120000034570694,
+        0.07599999755620956,
+        0.09799999743700027,
+        0.0949999988079071,
+        0.0989999994635582,
+        0.08900000154972076,
+        0.11500000208616257
+      ],
+      "class_distribution_tvd": 0.05800000578165054
+    }
+  ]
+}

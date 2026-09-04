@@ -15,7 +15,7 @@ import torch
 from tqdm import tqdm
 
 from miniddpm.diffusion import GaussianDiffusion
-from miniddpm.model import MiniUNet
+from miniddpm.model import build_model
 from miniddpm.utils import atomic_json_dump, resolve_device, sample_statistics, save_image_grid, seed_everything
 
 
@@ -36,7 +36,7 @@ def parse_args() -> argparse.Namespace:
 
 def load_model(checkpoint_path: Path, device: torch.device, raw_weights: bool = False):
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-    model = MiniUNet(**checkpoint["model_config"]).to(device)
+    model = build_model(checkpoint.get("model_name", "mini"), **checkpoint["model_config"]).to(device)
     weight_key = "model" if raw_weights or "ema_model" not in checkpoint else "ema_model"
     model.load_state_dict(checkpoint[weight_key])
     model.eval()

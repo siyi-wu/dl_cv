@@ -1,0 +1,43 @@
+{
+  "checkpoint": "E:\\Github_Project\\dl_cv\\Assignment2\\outputs\\train_enhanced\\checkpoint_last.pt",
+  "checkpoint_training_steps": 9380,
+  "weights": "ema_model",
+  "sampler": "ancestral",
+  "eta": 0.0,
+  "num_samples": 64,
+  "seed": 123,
+  "device": "cuda",
+  "shared_initial_noise": true,
+  "results": [
+    {
+      "steps": 1000,
+      "elapsed_seconds": 17.12415730000066,
+      "seconds_per_step": 0.01712415730000066,
+      "sharpness": 0.06468366831541061,
+      "diversity": 0.18507786095142365,
+      "foreground_ratio": 0.125,
+      "pixel_mean": 0.1263173222541809,
+      "pixel_std": 0.3010636270046234
+    },
+    {
+      "steps": 200,
+      "elapsed_seconds": 3.4144174000030034,
+      "seconds_per_step": 0.017072087000015015,
+      "sharpness": 0.0677473247051239,
+      "diversity": 0.18168264627456665,
+      "foreground_ratio": 0.1349649280309677,
+      "pixel_mean": 0.1348770707845688,
+      "pixel_std": 0.31033286452293396
+    },
+    {
+      "steps": 50,
+      "elapsed_seconds": 0.8568668000007165,
+      "seconds_per_step": 0.01713733600001433,
+      "sharpness": 0.06416402012109756,
+      "diversity": 0.17822997272014618,
+      "foreground_ratio": 0.12711256742477417,
+      "pixel_mean": 0.12706910073757172,
+      "pixel_std": 0.3023395538330078
+    }
+  ]
+}
