@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+data/MNIST/
+# 展示所需的 PNG、JSON、CSV、JSONL 会提交到 Git。
+# checkpoint 较大且可通过 README 命令重新训练，因此不提交。
+outputs/**/checkpoint*.pt
+outputs/**/wandb/
+scripts/
+tmp/

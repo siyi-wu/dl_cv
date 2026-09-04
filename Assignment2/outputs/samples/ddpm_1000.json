@@ -1,0 +1,18 @@
+{
+  "checkpoint": "E:\\Github_Project\\dl_cv\\Assignment2\\outputs\\train_full\\checkpoint_last.pt",
+  "checkpoint_training_steps": 9380,
+  "weights": "ema_model",
+  "sampler": "ancestral",
+  "steps": 1000,
+  "eta": 0.0,
+  "num_samples": 64,
+  "seed": 123,
+  "device": "cuda",
+  "elapsed_seconds": 6.042095100005099,
+  "seconds_per_step": 0.006042095100005099,
+  "sharpness": 0.06423663347959518,
+  "diversity": 0.18198025226593018,
+  "foreground_ratio": 0.1252790242433548,
+  "pixel_mean": 0.12603150308132172,
+  "pixel_std": 0.3009088635444641
+}
