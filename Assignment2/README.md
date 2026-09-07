@@ -6,7 +6,7 @@
 
 ### 只查看已经完成的实验
 
-无需安装 Python、Conda 或 CUDA，直接双击项目根目录下的 `start_demo.bat`。默认浏览器会打开离线实验展示页；请保持 `demo/` 和 `outputs/` 目录位于项目中。
+展示页不需要 Python、Conda、CUDA 或安装项目依赖。在 Ubuntu/macOS 运行 `bash start_demo.sh`，脚本会直接使用默认浏览器打开离线页面；Windows 可在 Git Bash 或 WSL 中运行同一命令。请保持 `start_demo.sh`、`demo/` 和 `outputs/` 位于同一项目目录中。
 
 ### 从头训练并生成对比结果
 
@@ -23,7 +23,7 @@ python compare_steps.py --checkpoint outputs/train_full/checkpoint_last.pt --out
 python evaluate.py --checkpoint outputs/train_full/checkpoint_last.pt --output-dir outputs/evaluation --steps 1000 200 50 --num-samples 1000 --device cuda
 ```
 
-训练结束后，双击 `start_demo.bat` 查看损失曲线、样本网格、步数对比和定量评估。首次训练会自动下载 MNIST；W&B 是可选功能，以上命令无需登录即可运行。若没有 NVIDIA GPU，将训练、对比和评估命令中的 `--device cuda` 改为 `--device cpu`，但运行时间会明显增加。
+训练结束后，运行 `bash start_demo.sh` 查看损失曲线、样本网格、步数对比和定量评估。首次训练会自动下载 MNIST；W&B 是可选功能，以上命令无需登录即可运行。若没有 NVIDIA GPU，将训练、对比和评估命令中的 `--device cuda` 改为 `--device cpu`，但运行时间会明显增加。
 
 ### 复现论文改进模型对照
 
@@ -54,7 +54,8 @@ Assignment2/
 ├── demo/
 │   ├── index.html      # 离线交互实验展示页
 │   └── assets/diagrams/ # 两种模型的 draw.io 源图及 SVG/PNG 导出图
-├── start_demo.bat       # Windows 一键打开离线展示页
+├── start_demo.sh        # Ubuntu / macOS / Git Bash / WSL 展示入口
+├── RUN_COMMANDS.md      # 训练两个模型和推理两个模型的一行命令
 ├── outputs/             # 已保留的训练曲线、样本网格和对比数据
 └── requirements.txt
 ```
@@ -155,6 +156,10 @@ python train.py --data-dir data --output-dir outputs/train_full --epochs 20 --ba
 
 ## 6. 采样与测试
 
+训练两个模型和推理两个模型的最简一行命令统一写在 [`RUN_COMMANDS.md`](RUN_COMMANDS.md) 中。推理前需要确保两个 `checkpoint_last.pt` 存在；checkpoint 被 Git 忽略，换电脑推理时需要单独复制。
+
+### 手动采样
+
 用 EMA 权重执行 1000 步 ancestral sampling 并输出 8×8 网格：
 
 ```powershell
@@ -251,15 +256,36 @@ EnhancedUNet 不是简单地增加通道，而是针对时间条件和全局结�
 
 ### 离线展示页
 
-#### 换电脑一键展示（Windows）
+#### 换电脑一键展示（Windows / Ubuntu / macOS）
 
-复制或克隆完整的 `Assignment2` 目录到目标电脑，双击项目根目录下的 `start_demo.bat` 即可。脚本会使用系统默认浏览器打开 `demo/index.html`，不需要 Conda、Python、GPU、网络或安装任何依赖。
+复制或克隆完整的 `Assignment2` 目录到目标电脑。展示不需要 Python、Conda、GPU、网络或安装 `requirements.txt`。
+
+Ubuntu / macOS：
+
+```bash
+bash start_demo.sh
+```
+
+首次也可以赋予执行权限，之后直接启动：
+
+```bash
+chmod +x start_demo.sh
+./start_demo.sh
+```
+
+Windows 请在 Git Bash 中运行：
+
+```bash
+bash start_demo.sh
+```
+
+WSL 中同样运行 `bash start_demo.sh`。脚本会识别 Ubuntu/Linux、macOS、WSL、Git Bash、MSYS 和 Cygwin，并调用对应系统的默认浏览器打开离线页面。
 
 必须保留以下相对目录结构，否则页面中的实验图片无法加载：
 
 ```text
 Assignment2/
-├── start_demo.bat
+├── start_demo.sh
 ├── demo/
 │   ├── index.html
 │   └── assets/diagrams/
@@ -274,13 +300,6 @@ Assignment2/
 
 也可以直接双击 `demo/index.html`。页面不依赖服务器或 CDN，包含原生数学公式、MiniUNet 与 EnhancedUNet 的完整 draw.io 架构图、章节导航、训练轮次滑块、1000/200/50 步切换、耗时图、DDPM/DDIM 对照和图片放大。架构图下方可下载 `.drawio` 源文件；目标电脑安装 draw.io 后可以继续编辑。
 
-如果希望通过 `localhost` 地址展示，并且目标电脑已经安装 Python，可在项目根目录运行：
-
-```powershell
-python -m http.server 8000
-```
-
-然后访问 `http://localhost:8000/demo/`。
 
 - 所有命令均从 `Assignment2` 根目录执行；
 - 原始数据、训练产物和报告分离，输出目录由命令行明确指定；
