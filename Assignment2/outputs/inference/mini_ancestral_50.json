@@ -1,5 +1,5 @@
 {
-  "checkpoint": "E:\\Github_Project\\dl_cv\\Assignment2\\outputs\\train_full\\checkpoint_last.pt",
+  "checkpoint": "/home/jameswu/Desktop/Github_project/dl_cv/Assignment2/outputs/train_full/checkpoint_last.pt",
   "checkpoint_training_steps": 9380,
   "weights": "ema_model",
   "sampler": "ancestral",
@@ -7,12 +7,12 @@
   "eta": 0.0,
   "num_samples": 64,
   "seed": 123,
-  "device": "cuda",
-  "elapsed_seconds": 1.0510569000034593,
-  "seconds_per_step": 0.021021138000069186,
-  "sharpness": 0.06798635423183441,
-  "diversity": 0.1739109754562378,
-  "foreground_ratio": 0.12312659621238708,
-  "pixel_mean": 0.12413283437490463,
-  "pixel_std": 0.29699307680130005
+  "device": "cpu",
+  "elapsed_seconds": 5.151238111999987,
+  "seconds_per_step": 0.10302476223999975,
+  "sharpness": 0.06739397346973419,
+  "diversity": 0.1799706071615219,
+  "foreground_ratio": 0.12543845176696777,
+  "pixel_mean": 0.12558335065841675,
+  "pixel_std": 0.298705130815506
 }
