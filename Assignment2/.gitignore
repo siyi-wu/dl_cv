@@ -9,3 +9,5 @@ outputs/**/checkpoint*.pt
 outputs/**/wandb/
 scripts/
 tmp/
+presentation/
+report/

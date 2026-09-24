@@ -1,0 +1,20 @@
+{
+  "problem": "Training accuracy improves while validation performance degrades late in training",
+  "hypothesis": "The MLP begins to overfit after its best validation epoch",
+  "changed_factor": "Early stopping",
+  "patience": 3,
+  "control": {
+    "epochs_completed": 20,
+    "best_epoch": 14,
+    "best_val_accuracy": 0.8788,
+    "final_val_accuracy": 0.8692,
+    "elapsed_seconds": 22.51972590002697
+  },
+  "early_stopping": {
+    "epochs_completed": 17,
+    "best_epoch": 14,
+    "best_val_accuracy": 0.8788,
+    "final_val_accuracy": 0.8777,
+    "elapsed_seconds": 18.715269800042734
+  }
+}

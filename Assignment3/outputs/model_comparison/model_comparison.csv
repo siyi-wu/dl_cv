@@ -1,0 +1,4 @@
+﻿model,hidden_size,activation,parameter_count,best_epoch,best_val_accuracy,test_accuracy
+linear,0,None,7850,20,0.8519,0.8428000211715698
+two_linear,128,None,101770,14,0.8533,0.8413000106811523
+mlp_relu,128,ReLU,101770,14,0.8788,0.866100013256073

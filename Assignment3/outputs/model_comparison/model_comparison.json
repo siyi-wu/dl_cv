@@ -1,0 +1,29 @@
+[
+  {
+    "model": "linear",
+    "hidden_size": 0,
+    "activation": "None",
+    "parameter_count": 7850,
+    "best_epoch": 20,
+    "best_val_accuracy": 0.8519,
+    "test_accuracy": 0.8428000211715698
+  },
+  {
+    "model": "two_linear",
+    "hidden_size": 128,
+    "activation": "None",
+    "parameter_count": 101770,
+    "best_epoch": 14,
+    "best_val_accuracy": 0.8533,
+    "test_accuracy": 0.8413000106811523
+  },
+  {
+    "model": "mlp_relu",
+    "hidden_size": 128,
+    "activation": "ReLU",
+    "parameter_count": 101770,
+    "best_epoch": 14,
+    "best_val_accuracy": 0.8788,
+    "test_accuracy": 0.866100013256073
+  }
+]
