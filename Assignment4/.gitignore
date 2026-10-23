@@ -1,0 +1,25 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Model checkpoints, tensor dumps, and console logs
+*.pt
+*.pth
+*.ckpt
+*.log
+*.tmp
+
+# Downloaded datasets (recreate with download_data.py)
+data/
+
+# Local report and assignment instructions
+report/
+task.md
+
+# Keep outputs/*.json, *.csv, *.png and permutation.npy versioned.

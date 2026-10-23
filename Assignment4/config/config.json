@@ -1,0 +1,9 @@
+{
+  "data_dir": "../Assignment3/data/FashionMNIST/raw",
+  "split_seed": 42,
+  "train_size": 50000,
+  "seed": 42,
+  "permutation_seed": 2026,
+  "classification": {"epochs": 20, "batch_size": 128, "learning_rate": 0.1},
+  "diffusion": {"epochs": 20, "batch_size": 256, "learning_rate": 0.001, "channels": 32, "steps": 200, "sample_seed": 123, "samples": 100}
+}

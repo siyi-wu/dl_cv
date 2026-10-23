@@ -1,0 +1,8 @@
+{
+  "python": "3.11.16",
+  "torch": "2.5.1+cu124",
+  "numpy": "1.26.4",
+  "platform": "Windows-10-10.0.26300-SP0",
+  "device": "cuda",
+  "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU"
+}
